@@ -1,39 +1,30 @@
-name: Deploy to Apps Script (clasp)
+name: Deploy to Google Apps Script
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Install clasp
+      - name: Install Clasp
         run: npm install -g @google/clasp
 
-      - name: Configure clasp auth
-        run: |
-          mkdir -p ~/.clasprc
-          echo '${{ secrets.CLASP_TOKEN }}' > ~/.clasprc.json
+      - name: Authenticate with CLASP
+        run: clasp login --creds ${{ secrets.CLASP_TOKEN }}
 
-      - name: Show .clasp.json
-        run: cat .clasp.json
+      - name: Push code to Google Apps Script
+        run: clasp push --force
 
-      - name: Push to Apps Script
-        run: clasp push -f
-
-      - name: Create a new version
-        run: clasp version -m "Auto: ${{ github.sha }}"
-
-      - name: Deploy web app
-        run: clasp deploy -d "Auto deploy from GitHub"
 
 
