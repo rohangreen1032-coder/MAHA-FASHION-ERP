@@ -1,32 +1,39 @@
-name: Deploy to Google Cloud
+name: Deploy to Apps Script (clasp)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Install clasp
+        run: npm install -g @google/clasp
 
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: mahafashionerp-deploy
+      - name: Configure clasp auth
+        run: |
+          mkdir -p ~/.clasprc
+          echo '${{ secrets.CLASP_TOKEN }}' > ~/.clasprc.json
 
-      - name: Deploy to Google App Engine
-        run: gcloud app deploy --quiet
+      - name: Show .clasp.json
+        run: cat .clasp.json
+
+      - name: Push to Apps Script
+        run: clasp push -f
+
+      - name: Create a new version
+        run: clasp version -m "Auto: ${{ github.sha }}"
+
+      - name: Deploy web app
+        run: clasp deploy -d "Auto deploy from GitHub"
+
 
