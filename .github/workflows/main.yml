@@ -3,32 +3,30 @@ name: Deploy to Google Cloud
 on:
   push:
     branches:
-      - main  # Jab main branch par push hoga to deploy hoga
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-    - name: Install dependencies
-      run: npm install
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-    # Service Account JSON ko secret se set karna
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: mahafashionerp-deploy
 
-    - name: Set Google Cloud Project
-      run: gcloud config set project YOUR_PROJECT_ID
+      - name: Deploy to Google App Engine
+        run: gcloud app deploy --quiet
 
-    - name: Deploy to App Engine
-      run: gcloud app deploy --quiet
